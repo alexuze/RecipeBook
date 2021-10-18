@@ -1,0 +1,38 @@
+<ng-template appPlaceholder></ng-template>
+<div class="row">
+  <div class="col-xs-12 col-md-6 col-md-offset-3">
+    <!-- <div class="alert alert-danger" *ngIf="error">{{error}}</div> -->
+    <!-- <app-alert *ngIf="error" [message]="error" (errorAck)="onErrorAck()"></app-alert> -->
+    <div *ngIf="isLoading" style="text-align: center;">
+      <app-loading-spinner></app-loading-spinner>
+    </div>
+    <form [formGroup]="authForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading">
+      <div class="form-group">
+        <label for="Email">E-Mail</label>
+        <input formControlName="email" type="email" id="email" class="form-control">
+        <span
+          class="help-block"
+          *ngIf="checkInputValidity('email')">Email Is INVALID!</span>
+      </div>
+      <div class="form-group">
+        <label for="Password">Password</label>
+        <input formControlName="password" type="password" id="password" class="form-control">
+        <span
+          class="help-block"
+          *ngIf="checkInputValidity('password')">Password Is INVALID!</span>
+      </div>
+      <div>
+        <button
+          class="btn btn-primary"
+          type="submit"
+          [disabled]="!authForm.valid">{{isLoginMode ? 'Login' : 'Sign-Up'}}</button>
+          <button class="btn btn-danger" *ngIf="!isLoginMode" (click)="isLoginMode = true;">Back To Login</button>
+      </div>
+      <div class="help-block" *ngIf="isLoginMode">
+        <span>Don't Have a user yet?</span>
+        <br>
+        <button class="btn btn-primary" type="button" (click)="this.isLoginMode = false">Sign up</button>
+      </div>
+    </form>
+  </div>
+</div>
