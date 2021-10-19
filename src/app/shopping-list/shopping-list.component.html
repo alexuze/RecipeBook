@@ -12,7 +12,7 @@
       <a
         class="list-group-item"
         style="cursor: pointer;"
-        *ngFor = "let ingredient of ingredients; let i=index"
+        *ngFor = "let ingredient of (ingredientsObs | async).ingredients; let i=index"
         (click)="onEditIngredient(i)">
         {{ ingredient.name }}  ({{ingredient.amount}})
       </a>

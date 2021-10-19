@@ -1,8 +1,10 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
+import { Store } from '@ngrx/store';
 import { Subscription } from 'rxjs';
 import { Ingredient } from 'src/app/shared/ingredient.module';
 import { ShoppingListService } from '../shooping-list.service';
+import * as ShoppingListActions from '../store/shopping-list.actions';
 
 @Component({
   selector: 'app-shopping-list-edit',
@@ -15,7 +17,10 @@ export class ShoppingListEditComponent implements OnInit {
   editItemIndex: number;
   editMode = false;
   editedItem: Ingredient;
-  constructor(private shoppingListService: ShoppingListService) {}
+  constructor(
+    private shoppingListService: ShoppingListService,
+    private store: Store<{ shoppingList: { ingredients: Ingredient[] } }>
+  ) {}
   ngOnInit(): void {
     this.startedEditingSubs = this.shoppingListService.startedEditing.subscribe(
       (editItemIndex: number) => {
@@ -45,7 +50,10 @@ export class ShoppingListEditComponent implements OnInit {
         alert('Wrong Name!!!');
       }
     } else {
-      this.shoppingListService.addIngredient(newIngredient);
+      // this.shoppingListService.addIngredient(newIngredient);99
+      this.store.dispatch(
+        new ShoppingListActions.AddIngredientAction(newIngredient)
+      );
     }
     this.editMode = false;
     form.reset();
