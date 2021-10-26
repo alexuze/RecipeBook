@@ -11,12 +11,13 @@ import {
   FormGroup,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
-import { AuthService } from './auth.service';
-import { AuthResponseData } from '../shared/interfaces/authResponseData.interface';
 import { AlertComponent } from '../shared/alert/alert.component';
 import { PlaceholderDirective } from '../shared/placeholder/placeholder.directive';
 import { Subscription } from 'rxjs';
+import { Store } from '@ngrx/store';
+
+import * as fromApp from '../store/app.reducer';
+import * as authActions from './store/auth.actions';
 
 @Component({
   selector: 'app-auth',
@@ -31,14 +32,24 @@ export class AuthComponent implements OnInit, OnDestroy {
   @ViewChild(PlaceholderDirective, { static: false })
   alertHost: PlaceholderDirective;
   private closeSub: Subscription;
+  private storeSub: Subscription;
 
   constructor(
-    private router: Router,
-    private authService: AuthService,
-    private cmpFactoryResolver: ComponentFactoryResolver
+    private cmpFactoryResolver: ComponentFactoryResolver,
+    private store: Store<fromApp.AppState>
   ) {}
 
   ngOnInit(): void {
+    this.storeSub = this.store.select('auth').subscribe((authState) => {
+      this.error = authState.authError;
+      this.isLoading = authState.isLoading;
+      if (this.error) {
+        this.showErrorAlert(this.error);
+      } else if (!this.isLoginMode) {
+        this.showErrorAlert('Signed Up Successfully , Clear this to Login');
+      }
+      this.isLoginMode = authState.isLoginMode;
+    });
     this.authForm = new FormGroup({
       email: new FormControl(null, [Validators.required, Validators.email]),
       password: new FormControl(null, [
@@ -49,35 +60,14 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   onLogin(email: string, password: string) {
-    this.authService.login(email, password).subscribe(
-      (responseData) => {
-        console.log('login subscribe');
-        this.isLoginMode = false;
-        this.router.navigate(['/']);
-      },
-      (errorMessage) => {
-        this.isLoading = false;
-        this.error = errorMessage;
-        this.showErrorAlert(errorMessage);
-        console.log(this.error);
-      }
+    this.store.dispatch(
+      new authActions.LoginStartAction({ email: email, password: password })
     );
   }
 
   private onSignUp(email: string, password: string) {
-    this.authService.signup(email, password).subscribe(
-      (responseData) => {
-        this.isLoginMode = true;
-        this.isLoading = false;
-        this.error = null;
-        console.log(responseData);
-      },
-      (errorMessage) => {
-        this.isLoading = false;
-        this.error = errorMessage;
-        this.showErrorAlert(errorMessage);
-        console.log(this.error);
-      }
+    this.store.dispatch(
+      new authActions.SignupStartAction({ email: email, password: password })
     );
   }
 
@@ -104,7 +94,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   onErrorAck() {
-    this.error = null;
+    this.store.dispatch(new authActions.ClearErrorAction());
   }
 
   private showErrorAlert(message: string) {
@@ -124,6 +114,9 @@ export class AuthComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.closeSub) {
       this.closeSub.unsubscribe();
+    }
+    if (this.storeSub) {
+      this.storeSub.unsubscribe();
     }
   }
 }
