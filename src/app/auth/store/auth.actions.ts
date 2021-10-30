@@ -18,6 +18,7 @@ export class LoginAction implements Action {
       id: string;
       token: string;
       expiresIn: Date;
+      redirect: boolean;
     }
   ) {}
 }
