@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Actions, createEffect, Effect, ofType } from '@ngrx/effects';
+import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { map, switchMap, withLatestFrom } from 'rxjs/operators';
 import { Recipe } from '../recipe.model';
 import * as RecipesActions from './recipe.actions';
@@ -35,16 +35,19 @@ export class RecipesEffects {
     )
   );
 
-  @Effect({ dispatch: false })
-  storeRecipes = this.actions$.pipe(
-    ofType(RecipesActions.SAVE_RECIPES),
-    withLatestFrom(this.store.select('recipes')),
-    switchMap(([actionData, recipesState]) => {
-      return this.http.put(
-        'https://recipebook-1ac16-default-rtdb.europe-west1.firebasedatabase.app/recipes.json',
-        recipesState.recipes
-      );
-    })
+  storeRecipes = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(RecipesActions.SAVE_RECIPES),
+        withLatestFrom(this.store.select('recipes')),
+        switchMap(([actionData, recipesState]) => {
+          return this.http.put(
+            'https://recipebook-1ac16-default-rtdb.europe-west1.firebasedatabase.app/recipes.json',
+            recipesState.recipes
+          );
+        })
+      ),
+    { dispatch: false }
   );
 
   constructor(
